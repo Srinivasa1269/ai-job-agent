@@ -1,26 +1,28 @@
-from langchain_ollama import OllamaLLM
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
+from langchain_community.tools import DuckDuckGoSearchRun
+from langgraph.prebuilt import create_react_agent
+from dotenv import load_dotenv
+import os
 
-# Connect to Ollama with Llama 3
-llm = OllamaLLM(model="llama3:latest")
+# Load API key from .env file
+load_dotenv()
 
-# Give the agent a personality
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful AI job assistant. Help users with job applications and career advice."),
-    MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}")
-])
+# Connect to Groq
+llm = ChatGroq(
+    model="llama3-70b-8192",
+    api_key=os.getenv("GROQ_API_KEY")
+)
 
-# Memory to remember conversation
-chat_history = []
+# Search tool
+search = DuckDuckGoSearchRun()
+tools = [search]
 
-# Chain everything together
-chain = prompt | llm
+# Create agent
+agent_executor = create_react_agent(llm, tools)
 
-print("🤖 AI Job Agent is ready! Type 'quit' to exit.\n")
+print("🔍 Search Agent Ready! Type 'quit' to exit.\n")
 
-# Chat loop
 while True:
     user_input = input("You: ")
     
@@ -28,13 +30,10 @@ while True:
         print("Goodbye!")
         break
     
-    response = chain.invoke({
-        "input": user_input,
-        "chat_history": chat_history
+    response = agent_executor.invoke({
+        "messages": [HumanMessage(content=user_input)]
     })
     
-    # Save to memory
-    chat_history.append(HumanMessage(content=user_input))
-    chat_history.append(AIMessage(content=response))
+    last_message = response["messages"][-1]
     
-    print(f"\nAgent: {response}\n")
+    print(f"\nAgent: {last_message.content}\n")

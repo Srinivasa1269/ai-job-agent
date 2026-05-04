@@ -9,59 +9,111 @@ import docx
 
 load_dotenv()
 
-st.set_page_config(page_title="AI Assistant", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Study", page_icon="📚", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .stApp { background: #f8fafc; }
-    section[data-testid="stSidebar"] { background: #ffffff; border-right: 1px solid #e2e8f0; }
 
+    /* Colourful pastel page background */
+    .stApp {
+        background: linear-gradient(160deg, #fdf4ff 0%, #eff6ff 35%, #f0fdf4 65%, #fff7ed 100%);
+        min-height: 100vh;
+    }
+
+    /* Sidebar: soft lavender tint */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #fdf4ff 0%, #eff6ff 100%);
+        border-right: 1px solid #e9d5ff;
+    }
+
+    /* Hero */
     .hero { text-align:center; padding:1.8rem 1rem 0.8rem; }
-    .hero-badge { display:inline-block; background:linear-gradient(90deg,#6366f1,#06b6d4); color:white; font-size:0.7rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:0.28rem 0.9rem; border-radius:50px; margin-bottom:0.7rem; }
-    .hero-title { font-size:2.1rem; font-weight:700; color:#1e293b; margin:0 0 0.35rem; }
-    .hero-title span { background:linear-gradient(90deg,#6366f1,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .hero-sub { color:#64748b; font-size:0.92rem; margin-bottom:0.8rem; }
-    .pills { display:flex; justify-content:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:1rem; }
-    .pill { background:#fff; border:1px solid #e2e8f0; border-radius:50px; padding:0.28rem 0.85rem; color:#475569; font-size:0.77rem; font-weight:500; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
-    .pill b { color:#6366f1; }
+    .hero-badge {
+        display:inline-block;
+        background: linear-gradient(90deg,#a855f7,#3b82f6,#06b6d4);
+        color:white; font-size:0.7rem; font-weight:700; letter-spacing:2px;
+        text-transform:uppercase; padding:0.28rem 0.9rem; border-radius:50px; margin-bottom:0.7rem;
+    }
+    .hero-title { font-size:2.5rem; font-weight:800; color:#1e293b; margin:0 0 0.35rem; }
+    .hero-title span {
+        background: linear-gradient(90deg,#a855f7,#3b82f6,#10b981);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .hero-sub { color:#6b7280; font-size:0.93rem; margin-bottom:0.8rem; }
 
+    /* Colourful pills — each a different pastel */
+    .pills { display:flex; justify-content:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .pill-purple  { background:#fdf4ff; border:1.5px solid #e9d5ff; color:#7c3aed; border-radius:50px; padding:0.3rem 0.9rem; font-size:0.77rem; font-weight:600; }
+    .pill-blue    { background:#eff6ff; border:1.5px solid #bfdbfe; color:#2563eb; border-radius:50px; padding:0.3rem 0.9rem; font-size:0.77rem; font-weight:600; }
+    .pill-green   { background:#f0fdf4; border:1.5px solid #bbf7d0; color:#16a34a; border-radius:50px; padding:0.3rem 0.9rem; font-size:0.77rem; font-weight:600; }
+    .pill-orange  { background:#fff7ed; border:1.5px solid #fed7aa; color:#ea580c; border-radius:50px; padding:0.3rem 0.9rem; font-size:0.77rem; font-weight:600; }
+    .pill-pink    { background:#fdf2f8; border:1.5px solid #fbcfe8; color:#db2777; border-radius:50px; padding:0.3rem 0.9rem; font-size:0.77rem; font-weight:600; }
+    .pill-teal    { background:#f0fdfa; border:1.5px solid #99f6e4; color:#0f766e; border-radius:50px; padding:0.3rem 0.9rem; font-size:0.77rem; font-weight:600; }
+
+    /* Chat bubbles: alternating pastel colours */
     [data-testid="stChatMessageContent"] {
-        background:#ffffff !important; border:1px solid #e2e8f0 !important;
-        border-radius:16px !important; color:#1e293b !important;
+        border-radius:18px !important; color:#1e293b !important;
         padding:1rem 1.2rem !important; font-size:0.94rem !important;
-        line-height:1.72 !important; box-shadow:0 1px 4px rgba(0,0,0,0.04) !important;
+        line-height:1.72 !important;
+    }
+    /* User bubble: soft purple */
+    [data-testid="stChatMessage"][data-testid*="user"] [data-testid="stChatMessageContent"],
+    div[class*="stChatMessage"]:has(img[alt="user"]) [data-testid="stChatMessageContent"] {
+        background: linear-gradient(135deg,#fdf4ff,#eff6ff) !important;
+        border:1.5px solid #e9d5ff !important;
+        box-shadow: 0 2px 8px rgba(168,85,247,0.08) !important;
+    }
+    /* Assistant bubble: soft mint/blue */
+    [data-testid="stChatMessageContent"] {
+        background: linear-gradient(135deg,#f0fdf4,#eff6ff) !important;
+        border:1.5px solid #bbf7d0 !important;
+        box-shadow: 0 2px 8px rgba(16,185,129,0.07) !important;
     }
     [data-testid="stChatMessageContent"] p,
     [data-testid="stChatMessageContent"] li { color:#334155 !important; }
     [data-testid="stChatMessageContent"] strong,
-    [data-testid="stChatMessageContent"] b { color:#6366f1 !important; }
-    [data-testid="stChatMessageContent"] code { background:#f1f5f9; color:#7c3aed; padding:0.1rem 0.4rem; border-radius:4px; font-size:0.88rem; }
+    [data-testid="stChatMessageContent"] b { color:#7c3aed !important; }
+    [data-testid="stChatMessageContent"] code { background:#fdf4ff; color:#7c3aed; padding:0.1rem 0.4rem; border-radius:4px; font-size:0.88rem; }
     [data-testid="stChatMessageContent"] h1,
     [data-testid="stChatMessageContent"] h2,
     [data-testid="stChatMessageContent"] h3 { color:#1e293b !important; margin-top:0.8rem; }
-    [data-testid="stChatMessageContent"] blockquote { border-left:3px solid #6366f1; padding-left:0.8rem; color:#64748b !important; margin:0.5rem 0; }
+    [data-testid="stChatMessageContent"] blockquote { border-left:3px solid #a855f7; padding-left:0.8rem; color:#6b7280 !important; }
 
-    .stChatInputContainer { background:#fff !important; border:1.5px solid #e2e8f0 !important; border-radius:16px !important; box-shadow:0 2px 8px rgba(0,0,0,0.05) !important; }
-    .stChatInputContainer textarea { color:#1e293b !important; font-size:0.94rem !important; }
-    .stChatInputContainer textarea::placeholder { color:#94a3b8 !important; }
+    /* Input bar */
+    .stChatInputContainer {
+        background: linear-gradient(135deg,#fdf4ff,#eff6ff) !important;
+        border:1.5px solid #e9d5ff !important; border-radius:18px !important;
+        box-shadow: 0 4px 16px rgba(168,85,247,0.1) !important;
+    }
+    .stChatInputContainer textarea { color:#1e293b !important; font-size:0.94rem !important; background:transparent !important; }
+    .stChatInputContainer textarea::placeholder { color:#a78bfa !important; }
 
-    .source-tag { display:inline-block; background:#faf5ff; border:1px solid #ddd6fe; color:#7c3aed; border-radius:8px; padding:0.22rem 0.7rem; font-size:0.78rem; margin-bottom:0.5rem; margin-right:0.4rem; }
-    .doc-tag { display:inline-block; background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; border-radius:8px; padding:0.22rem 0.7rem; font-size:0.78rem; margin-bottom:0.5rem; margin-right:0.4rem; }
-    .doc-card { background:linear-gradient(135deg,#f5f3ff,#eff6ff); border:1px solid #ddd6fe; border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.4rem; font-size:0.81rem; color:#4c1d95; }
+    /* Tags */
+    .source-tag { display:inline-block; background:#eff6ff; border:1.5px solid #bfdbfe; color:#2563eb; border-radius:8px; padding:0.22rem 0.7rem; font-size:0.78rem; margin-bottom:0.5rem; margin-right:0.4rem; font-weight:600; }
+    .doc-tag    { display:inline-block; background:#f0fdf4; border:1.5px solid #bbf7d0; color:#16a34a; border-radius:8px; padding:0.22rem 0.7rem; font-size:0.78rem; margin-bottom:0.5rem; margin-right:0.4rem; font-weight:600; }
+    .doc-card   { background:linear-gradient(135deg,#fdf4ff,#eff6ff); border:1px solid #e9d5ff; border-radius:10px; padding:0.6rem 0.9rem; margin-bottom:0.4rem; font-size:0.81rem; color:#6d28d9; }
 
-    .chat-item { padding:0.45rem 0.7rem; border-radius:10px; margin-bottom:0.25rem; cursor:pointer; font-size:0.83rem; border:1px solid transparent; color:#334155; background:#f8fafc; display:flex; justify-content:space-between; align-items:center; }
-    .chat-item.active { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; font-weight:600; }
-    .chat-item:hover { background:#f1f5f9; }
-    .chat-time { font-size:0.7rem; color:#94a3b8; }
+    /* Sidebar */
+    .sidebar-title { color:#4c1d95; font-weight:700; font-size:0.86rem; margin-bottom:0.5rem; }
+    .divider { border:none; border-top:1px solid #e9d5ff; margin:0.85rem 0; }
 
-    .sidebar-title { color:#1e293b; font-weight:600; font-size:0.86rem; margin-bottom:0.5rem; }
-    .divider { border:none; border-top:1px solid #f1f5f9; margin:0.85rem 0; }
-
-    .stButton > button { background:#f8fafc !important; color:#334155 !important; border:1px solid #e2e8f0 !important; border-radius:10px !important; font-weight:500 !important; font-size:0.82rem !important; width:100% !important; text-align:left !important; padding:0.45rem 0.75rem !important; }
-    .stButton > button:hover { background:#f5f3ff !important; border-color:#ddd6fe !important; color:#7c3aed !important; }
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg,#fdf4ff,#eff6ff) !important;
+        color:#6d28d9 !important; border:1.5px solid #e9d5ff !important;
+        border-radius:10px !important; font-weight:500 !important;
+        font-size:0.82rem !important; width:100% !important;
+        text-align:left !important; padding:0.45rem 0.75rem !important;
+    }
+    .stButton > button:hover {
+        background: linear-gradient(135deg,#f5f3ff,#dbeafe) !important;
+        border-color:#c4b5fd !important; color:#4c1d95 !important;
+    }
     h1,h2,h3 { color:#1e293b !important; }
+    .stMarkdown p { color:#475569 !important; }
+    .stSpinner > div { border-top-color: #a855f7 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -127,8 +179,8 @@ def new_chat():
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown('<div class="sidebar-title">🤖 AI Assistant</div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#94a3b8;font-size:0.75rem;margin-top:-0.3rem;">Powered by Groq · LLaMA 3.1</p>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">📚 Study</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#a78bfa;font-size:0.75rem;margin-top:-0.3rem;">Powered by Groq · LLaMA 3.1</p>', unsafe_allow_html=True)
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
     # New chat button
@@ -198,15 +250,16 @@ doc_count = len(st.session_state.docs)
 st.markdown(f"""
 <div class="hero">
     <div class="hero-badge">Live Search · Documents · Multi-Chat</div>
-    <div class="hero-title">Your <span>AI Assistant</span></div>
+    <div class="hero-title"><span>Study</span></div>
     <div class="hero-sub">Ask anything — live scores, weather, news, or questions about your documents</div>
     <div class="pills">
-        <div class="pill">🌐 <b>Live</b> web search</div>
-        <div class="pill">📄 <b>Document</b> Q&A</div>
-        <div class="pill">🏏 <b>Sports</b> scores</div>
-        <div class="pill">🌦️ <b>Weather</b></div>
-        {"<div class='pill'>📎 <b>" + str(doc_count) + "</b> doc(s)</div>" if doc_count else ""}
-        <div class="pill">💬 <b>{len(st.session_state.chats)}</b> chat(s)</div>
+        <div class="pill-purple">🌐 Live search</div>
+        <div class="pill-blue">📄 Document Q&A</div>
+        <div class="pill-green">🏏 Sports scores</div>
+        <div class="pill-orange">🌦️ Weather</div>
+        <div class="pill-pink">📝 Study help</div>
+        {"<div class='pill-teal'>📎 " + str(doc_count) + " doc(s)</div>" if doc_count else ""}
+        <div class="pill-teal">💬 {len(st.session_state.chats)} chat(s)</div>
     </div>
 </div>
 """, unsafe_allow_html=True)

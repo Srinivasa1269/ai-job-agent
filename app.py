@@ -172,11 +172,16 @@ def new_chat():
 
 search = DuckDuckGoSearchRun()
 
-SYSTEM = SystemMessage(content="""You are a smart, friendly AI assistant for studying and daily use.
-- Answer clearly using markdown: bold key terms, bullet points, headers.
-- For live data: put key facts at the very top.
-- For documents: answer only from the provided content.
-- Be concise but thorough. Always be encouraging.""")
+SYSTEM = SystemMessage(content="""You are a sharp, concise AI assistant for studying and daily use.
+
+Rules:
+- Keep answers SHORT and to the point. No fluff, no padding.
+- Max 5 bullet points unless more are truly needed.
+- Use bold for key terms only. Skip headers for short answers.
+- For facts/live data: one clear sentence per fact at the top.
+- For explanations: 2-4 sentences max, then bullets if needed.
+- Never repeat the question. Never say "Great question!" or filler phrases.
+- If asked something simple, give a simple answer — one or two lines is fine.""")
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -282,6 +287,15 @@ with tab_chat:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
+    # Auto-scroll to bottom
+    st.markdown("""
+    <script>
+        const chatContainer = window.parent.document.querySelector('[data-testid="stVerticalBlock"]');
+        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+        window.parent.document.querySelector('.main').scrollTo(0, window.parent.document.querySelector('.main').scrollHeight);
+    </script>
+    """, unsafe_allow_html=True)
+
     prompt = st.session_state.pop("quick_prompt", None)
     user_input = st.chat_input("Ask anything — study help, live scores, weather, summarise my doc...")
     if user_input:
@@ -298,7 +312,7 @@ with tab_chat:
             doc_query = any(w in prompt.lower() for w in ["document","doc","uploaded","file","summarise","summary","quiz","notes","pdf"])
 
             # Medium memory: last 10 messages
-            llm = ChatOllama(model=st.session_state.selected_model, temperature=0.7)
+            llm = ChatOllama(model=st.session_state.selected_model, temperature=0.3, num_predict=512)
             messages = [SYSTEM]
             for m in current_messages()[:-1][-10:]:
                 cls = HumanMessage if m["role"] == "user" else AIMessage
@@ -328,6 +342,13 @@ with tab_chat:
 
             st.markdown(response.content)
             current_messages().append({"role": "assistant", "content": response.content})
+
+            # Scroll to bottom after response
+            st.markdown("""
+            <script>
+                window.parent.document.querySelector('.main').scrollTo(0, window.parent.document.querySelector('.main').scrollHeight);
+            </script>
+            """, unsafe_allow_html=True)
 
             # Save to notes button
             if st.button("⭐ Save this to Notes", key=f"save_{len(current_messages())}"):
